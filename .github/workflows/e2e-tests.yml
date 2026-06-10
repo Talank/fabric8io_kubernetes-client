@@ -18,17 +18,6 @@ name: E2E Tests
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-  pull_request:
-    paths-ignore:
-      - 'doc/**'
-      - 'ide-config/**'
-      - '**.md'
-  schedule:
-    - cron: '0 1 * * *' # Every day at 1
-
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
   group: ci-e2e-kubernetes-client-${{ github.ref }}
@@ -42,8 +31,8 @@ env:
 jobs:
   buildWithoutTests:
     name: BuildWithoutTests
-    runs-on: ubuntu-24.04-arm
-    if: github.repository == 'fabric8io/kubernetes-client'
+    runs-on: ${{ matrix.os }}
+    if: always()
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -60,15 +49,23 @@ jobs:
       - name: Install Kubernetes Client
         run: make quickly MAVEN_ARGS="${MAVEN_ARGS}"
 
+    strategy:
+      matrix:
+        os: &id001
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+      fail-fast: false
   minikube_baremetal:
     name: Baremetal K8S
     needs: buildWithoutTests
-    runs-on: ubuntu-24.04-arm
-    if: github.repository == 'fabric8io/kubernetes-client'
+    runs-on: ${{ matrix.os }}
+    if: always()
     strategy:
       fail-fast: false
       matrix:
-        kubernetes: [v1.36.0,v1.35.4,v1.34.7,v1.33.11,v1.32.13,v1.31.14,v1.30.14,v1.29.15]
+        kubernetes: [v1.36.0, v1.35.4, v1.34.7, v1.33.11, v1.32.13, v1.31.14, v1.30.14, v1.29.15]
+        os: *id001
     steps:
       - name: Checkout
         uses: actions/checkout@v6

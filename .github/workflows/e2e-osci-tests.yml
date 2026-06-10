@@ -18,9 +18,6 @@ name: E2E osci.io Tests
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 4 * * *' # Every day at 4am
-
 concurrency:
   group: single-instance-for-persistent-cluster
   cancel-in-progress: true
@@ -33,8 +30,8 @@ env:
 jobs:
   e2e:
     name: E2E OpenShift 4
-    runs-on: ubuntu-latest
-    if: github.repository == 'fabric8io/kubernetes-client'
+    runs-on: ${{ matrix.os }}
+    if: always()
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -51,3 +48,10 @@ jobs:
       - name: Run Integration Tests
         run: |
           ./mvnw ${MAVEN_ARGS} -P"enable-snapshots" -Pitests -pl $IT_MODULE -Dgroups=$FAILSAFE_TEST_GROUPS verify
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+      fail-fast: false
