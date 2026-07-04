@@ -17,15 +17,7 @@
 name: Generate Model
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    paths-ignore:
-      - 'doc/**'
-      - 'ide-config/**'
-      - '**.md'
-
+  workflow_dispatch:
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
   group: ci-go-kubernetes-client-${{ github.ref }}
@@ -38,7 +30,7 @@ permissions:
 jobs:
   generate-model:
     name: Kubernetes Model Generator Build
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -69,5 +61,11 @@ jobs:
             exit 1;
           fi;
       - name: Cancel PR workflows on failure
-        if: ${{ failure() && github.event_name == 'pull_request' }}
+        if: always()
         uses: ./.github/actions/cancel-pr-workflows
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+      fail-fast: false

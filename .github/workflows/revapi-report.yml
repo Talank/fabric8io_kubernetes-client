@@ -18,26 +18,6 @@ name: Revapi Compatibility Report
 
 on:
   workflow_dispatch:
-    inputs:
-      old_version:
-        description: 'Published version to compare against (e.g., 7.0.0). Leave empty to compare against the latest published release.'
-        required: false
-        default: ""
-        type: string
-      new_version:
-        description: 'Published version to compare with (e.g., 7.1.0)'
-        required: false
-        default: ""
-        type: string
-      java_version:
-        description: 'Java version to use'
-        required: false
-        default: '17'
-        type: choice
-        options:
-          - '17'
-          - '21'
-
 env:
   MAVEN_ARGS: -B -C -V -ntp -Dhttp.keepAlive=false -e
 
@@ -47,7 +27,7 @@ permissions:
 jobs:
   revapi-report:
     name: Generate Revapi Report
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -119,3 +99,9 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Download the \`revapi-reports-${SUFFIX}\` artifact and open \`revapi-index.html\` in your browser to view the reports." >> $GITHUB_STEP_SUMMARY
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+      fail-fast: false

@@ -17,15 +17,7 @@
 name: Sonar Scanner
 
 on:
-  push:
-    branches:
-      - main
-#  pull_request:
-#    paths-ignore:
-#      - 'doc/**'
-#      - 'ide-config/**'
-#      - '**.md'
-
+  workflow_dispatch:
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
   group: ci-sonar-kubernetes-client-${{ github.ref }}
@@ -37,7 +29,7 @@ permissions:
 jobs:
   sonar:
     name: Sonar
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -55,3 +47,9 @@ jobs:
           cache: 'maven'
       - name: Sonar
         run: make sonar
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+      fail-fast: false

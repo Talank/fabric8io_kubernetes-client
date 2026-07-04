@@ -29,10 +29,7 @@ env:
     -Dsun.net.client.defaultReadTimeout=30000
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  workflow_dispatch:
 
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
@@ -46,7 +43,7 @@ permissions:
 jobs:
   style-check:
     name: License & Code Style Checks
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -78,5 +75,11 @@ jobs:
         timeout-minutes: 5
         run: ./mvnw ${MAVEN_ARGS} -Pitests spotless:check
       - name: Cancel PR workflows on failure
-        if: ${{ failure() && github.event_name == 'pull_request' }}
+        if: always()
         uses: ./.github/actions/cancel-pr-workflows
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+      fail-fast: false
